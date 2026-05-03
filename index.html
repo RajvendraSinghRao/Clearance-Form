@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teacher Student Attendance System</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    background:#f2f2f2;
+    padding:20px;
+}
+
+.container{
+    max-width:1000px;
+    margin:auto;
+}
+
+.box{
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    margin-top:20px;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+h1{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+h2,h3{
+    margin-bottom:10px;
+}
+
+input,
+select,
+button{
+    width:100%;
+    padding:12px;
+    margin-top:10px;
+    border-radius:8px;
+    border:1px solid #ccc;
+}
+
+button{
+    background:#007bff;
+    color:white;
+    border:none;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#0056b3;
+}
+
+.logout{
+    background:red;
+    margin-top:20px;
+}
+
+.logout:hover{
+    background:darkred;
+}
+
+.student-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:#f7f7f7;
+    padding:10px;
+    margin-top:10px;
+    border-radius:8px;
+}
+
+.subject-card{
+    background:#fafafa;
+    padding:15px;
+    margin-top:15px;
+    border-left:5px solid #007bff;
+    border-radius:8px;
+}
+
+.present{
+    color:green;
+    font-weight:bold;
+}
+
+.absent{
+    color:red;
+    font-weight:bold;
+}
+
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+<h1>Teacher Student Attendance System</h1>
+
+<div class="box" id="loginBox">
+
+<h2>Login</h2>
+
+<select id="role">
+<option value="teacher">Teacher Login</option>
+<option value="student">Student Login</option>
+</select>
+
+<input type="text" id="username" placeholder="Enter Username">
+
+<input type="password" id="password" placeholder="Enter Password">
+
+<button onclick="login()">Login</button>
+
+</div>
+
+<div id="dashboard"></div>
+
+</div>
+
+<script>
+
+
+// ===================================================
+// IMPORTANT
+// PASTE YOUR GOOGLE APPS SCRIPT URL BELOW
+// ===================================================
+
+const API_URL = "https://script.google.com/macros/s/AKfycbw7KhkdiJDRSwWjYXap2qZw-VTrg4Spdfze_GskgFlzr2e0jnUVZ8t1TJ6j6jNhAdY/exec";
+
+
+
+// ===================================================
+// TEACHERS
+// ===================================================
+
+const teachers = [
+
+{
+username:"swami",
+password:"123",
+name:"Swami",
+subject:"SA"
+},
+
+{
+username:"asir",
+password:"123",
+name:"Asir",
+subject:"Survey"
+},
+
+{
+username:"rahul",
+password:"123",
+name:"Rahul",
+subject:"AutoCAD"
+},
+
+{
+username:"manoj",
+password:"123",
+name:"Manoj",
+subject:"Structure"
+},
+
+{
+username:"vikas",
+password:"123",
+name:"Vikas",
+subject:"Estimation"
+}
+
+];
+
+
+
+// ===================================================
+// STUDENTS
+// ===================================================
+
+const students = [
+
+{
+username:"rajvendra",
+password:"123",
+name:"Rajvendra"
+},
+
+{
+username:"yash",
+password:"123",
+name:"Yash"
+},
+
+{
+username:"harshit",
+password:"123",
+name:"Harshit"
+},
+
+{
+username:"sachin",
+password:"123",
+name:"Sachin"
+}
+
+];
+
+
+
+// ===================================================
+// LOGIN FUNCTION
+// ===================================================
+
+function login(){
+
+const role = document.getElementById("role").value;
+
+const username = document.getElementById("username").value.toLowerCase();
+
+const password = document.getElementById("password").value;
+
+
+
+// ---------------------------
+// TEACHER LOGIN
+// ---------------------------
+
+if(role === "teacher"){
+
+const teacher = teachers.find(t =>
+t.username === username &&
+t.password === password
+);
+
+if(teacher){
+
+teacherDashboard(teacher);
+
+}else{
+
+alert("Invalid Teacher Login");
+
+}
+
+}
+
+
+
+// ---------------------------
+// STUDENT LOGIN
+// ---------------------------
+
+if(role === "student"){
+
+const student = students.find(s =>
+s.username === username &&
+s.password === password
+);
+
+if(student){
+
+studentDashboard(student);
+
+}else{
+
+alert("Invalid Student Login");
+
+}
+
+}
+
+}
+
+
+
+// ===================================================
+// TEACHER DASHBOARD
+// ===================================================
+
+async function teacherDashboard(teacher){
+
+document.getElementById("loginBox").style.display = "none";
+
+const response = await fetch(API_URL);
+
+const data = await response.json();
+
+let html = `
+
+<div class="box">
+
+<h2>Teacher Dashboard</h2>
+
+<h3>Teacher: ${teacher.name}</h3>
+
+<h3>Subject: ${teacher.subject}</h3>
+
+`;
+
+
+
+students.forEach(student=>{
+
+const found = data.find(d =>
+
+d.subject === teacher.subject &&
+d.student === student.username &&
+d.checked === true
+
+);
+
+
+
+html += `
+
+<div class="student-row">
+
+<span>${student.name}</span>
+
+<input
+type="checkbox"
+style="width:25px;height:25px"
+${found ? "checked" : ""}
+onchange="updateAttendance(
+'${teacher.subject}',
+'${student.username}',
+this.checked
+)"
+>
+
+</div>
+
+`;
+
+});
+
+
+
+html += `
+
+<button class="logout" onclick="logout()">Logout</button>
+
+</div>
+
+`;
+
+
+
+document.getElementById("dashboard").innerHTML = html;
+
+}
+
+
+
+// ===================================================
+// UPDATE ATTENDANCE
+// ===================================================
+
+async function updateAttendance(subject,student,checked){
+
+await fetch(API_URL,{
+
+method:"POST",
+
+body:JSON.stringify({
+
+subject:subject,
+student:student,
+checked:checked
+
+})
+
+});
+
+}
+
+
+
+// ===================================================
+// STUDENT DASHBOARD
+// ===================================================
+
+async function studentDashboard(student){
+
+document.getElementById("loginBox").style.display = "none";
+
+const response = await fetch(API_URL);
+
+const data = await response.json();
+
+let html = `
+
+<div class="box">
+
+<h2>Student Dashboard</h2>
+
+<h3>Student: ${student.name}</h3>
+
+`;
+
+
+
+teachers.forEach(teacher=>{
+
+const found = data.find(d =>
+
+d.subject === teacher.subject &&
+d.student === student.username &&
+d.checked === true
+
+);
+
+
+
+html += `
+
+<div class="subject-card">
+
+<h3>Subject: ${teacher.subject}</h3>
+
+<p><b>Teacher:</b> ${teacher.name}</p>
+
+<br>
+
+${found
+
+? '<span class="present">✅ Checked By Teacher</span>'
+
+: '<span class="absent">❌ Not Checked</span>'
+
+}
+
+</div>
+
+`;
+
+});
+
+
+
+html += `
+
+<button class="logout" onclick="logout()">Logout</button>
+
+</div>
+
+`;
+
+
+
+document.getElementById("dashboard").innerHTML = html;
+
+}
+
+
+
+// ===================================================
+// LOGOUT
+// ===================================================
+
+function logout(){
+
+document.getElementById("dashboard").innerHTML = "";
+
+document.getElementById("loginBox").style.display = "block";
+
+document.getElementById("username").value = "";
+
+document.getElementById("password").value = "";
+
+}
+
+</script>
+
+</body>
+</html>
